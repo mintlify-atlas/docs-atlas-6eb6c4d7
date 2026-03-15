@@ -1,0 +1,101 @@
+---
+title: 'Joining trips'
+description: 'How to enroll in a trip, leave a trip, and request a Creator promotion on TravelConnect.'
+---
+
+As a `Viatger`, you can join any trip that has available capacity and leave it at any time.
+
+## Enrolling in a trip
+
+<Steps>
+  <Step title="Open the trip detail page">
+    From the dashboard at `/dashboard`, click on the trip you want to join to open its detail page at `/trips/:id`.
+  </Step>
+
+  <Step title="Check the available spots">
+    In the sidebar, confirm that the enrolled count is less than the maximum capacity. For example:
+
+    ```
+    Capacity:  12 people
+    Enrolled:  7
+    ```
+  </Step>
+
+  <Step title="Click Inscribirse ahora">
+    Click the **Inscribirse ahora** button. This sends a `POST` request to the API:
+
+    ```http
+    POST /viatge/trips/{id}/enroll
+    Authorization: Bearer <your_jwt_token>
+    ```
+  </Step>
+
+  <Step title="Confirm enrollment">
+    After a successful enrollment, the **Inscribirse ahora** button is replaced by an **Inscrito** confirmation badge. The participant count in the sidebar updates to reflect the new total.
+
+    The **Chat del Grupo** tab also becomes visible on the detail page, giving you access to the group conversation for that trip.
+  </Step>
+</Steps>
+
+<Note>
+  The **Inscribirse ahora** button is only visible to users with the `Viatger` role. `Creador` and `Admin` users manage trips rather than enrolling in them.
+</Note>
+
+## Leaving a trip
+
+To withdraw from a trip you have already joined:
+
+<Steps>
+  <Step title="Navigate to the trip detail page">
+    Go to `/trips/:id` for the trip you want to leave.
+  </Step>
+
+  <Step title="Leave the trip">
+    Use the leave option. The frontend sends:
+
+    ```http
+    POST /viatge/trips/{id}/leave
+    Authorization: Bearer <your_jwt_token>
+    ```
+
+    Your enrollment is removed and the participant count decreases by one.
+  </Step>
+</Steps>
+
+## When a trip is full
+
+<Warning>
+  If a trip has reached its `maxim_participants` limit, the enrollment request will fail with a `400` error. The server returns an error message indicating the trip is full. Check other trips on the dashboard for available spots.
+</Warning>
+
+## Requesting a Creator promotion
+
+If you want to create and manage your own trips, you can submit a promotion request to be upgraded from `Viatger` to `Creador`.
+
+<Steps>
+  <Step title="Go to your profile">
+    Navigate to `/profile` and confirm your current role is `Viatger`.
+  </Step>
+
+  <Step title="Submit a promotion request">
+    Use the promotion request feature. The frontend sends a `POST` request with a message explaining why you want the Creator role:
+
+    ```http
+    POST /viatge/promote-request
+    Authorization: Bearer <your_jwt_token>
+    Content-Type: application/json
+
+    {
+      "missatge": "I want to organise group hiking trips in the Alps."
+    }
+    ```
+  </Step>
+
+  <Step title="Wait for admin approval">
+    An Admin will review your request. Once approved, your role is updated to `Creador` and you can begin creating trips. You will need to log out and log back in for the new role to be reflected in your session token.
+  </Step>
+</Steps>
+
+<Tip>
+  Write a clear and specific message in your promotion request describing the types of trips you plan to create. This helps admins process requests faster.
+</Tip>

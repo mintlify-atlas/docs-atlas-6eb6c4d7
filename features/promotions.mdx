@@ -1,0 +1,117 @@
+---
+title: "Promotions"
+description: "How Viatger (Traveler) users request promotion to Creador (Creator), and how Admins review and act on those requests."
+---
+
+Users who want to create and publish their own trips must first be promoted from `Viatger` to `Creador`. This happens through a structured promotion request workflow that requires Admin approval.
+
+## Request states
+
+Promotion requests are stored in the `peticioPromo` table and track their own status via the `EstatPeticio` enum:
+
+```python
+class EstatPeticio(str, enum.Enum):
+    PENDENT = "pendent"
+    APROBAT = "aprobat"
+    DENEGAT = "denegat"
+```
+
+| State | Meaning |
+|---|---|
+| `pendent` | Request submitted, waiting for Admin review. |
+| `aprobat` | Admin approved. The user's role has been updated to `Creador`. |
+| `denegat` | Admin rejected the request. The user's role remains `Viatger`. |
+
+## Who can submit a request
+
+Only users with the `Viatger` role can submit a promotion request. Creators and Admins already have elevated access and have no need for the workflow.
+
+## Submitting a request
+
+<Steps>
+  <Step title="Open the promotion form">
+    Navigate to the Creator request form. In the frontend, this is the `FormularioPeti` page at `/promote-request`.
+  </Step>
+  <Step title="Write your motivation">
+    Fill in the **Justificación / Motivación** textarea. Explain why you want to become a Creator and what kind of trips you plan to offer. The `missatge_peticio` field accepts up to 500 characters and is required.
+  </Step>
+  <Step title="Submit the request">
+    Click **Enviar Solicitud**. The frontend posts to:
+
+    ```http
+    POST /viatge/promote-request
+    Authorization: Bearer <token>
+    Content-Type: application/json
+
+    {
+      "missatge": "I have guided hiking trips for 5 years and want to share routes with the community."
+    }
+    ```
+
+    A new `PeticioPromo` record is created with `estat = "pendent"` and linked to your user account via `usuari_solicitant`.
+  </Step>
+  <Step title="Wait for review">
+    After submitting, you are redirected to the dashboard. An Admin will review the request and approve or reject it.
+  </Step>
+</Steps>
+
+<Note>
+  You can only have one promotion request per account. Submitting a second request while one is pending is not permitted.
+</Note>
+
+## Admin review
+
+Admins see all pending promotion requests and can approve or reject each one.
+
+### Listing requests
+
+```http
+GET /users/promotions
+```
+
+Returns all `PeticioPromo` records, including the requestor's user ID and their motivation message.
+
+### Approving or rejecting
+
+```http
+PUT /promotions/{user_id}
+Content-Type: application/json
+
+{
+  "new_estado": "aprobat"
+}
+```
+
+Set `new_estado` to `"aprobat"` to approve or `"denegat"` to reject.
+
+<Tip>
+  When approving, remember to also update the user's role to `Creador` using `PUT /users/{user_id}/promote` with `{ "new_rol": "Creador" }`. The promotion request approval and the role change are two separate operations.
+</Tip>
+
+## What changes after approval
+
+Once an Admin sets the promotion request to `aprobat` and updates the user's role:
+
+- The user's `rol` field in the `usuari` table changes from `Viatger` to `Creador`.
+- The next JWT token the user obtains (on their next login) will carry `rol: Creador`.
+- The user gains access to `POST /creator/trips` and `PUT /creator/trips/{id}`.
+- The **Create New Trip** button appears in the trip list view.
+
+<Note>
+  The role change takes effect on the user's next login, when a fresh JWT token is issued with the updated role.
+</Note>
+
+## Data model
+
+```python
+class PeticioPromo(Base):
+    __tablename__ = "peticioPromo"
+
+    id = Column(Integer, primary_key=True, index=True)
+    missatge_peticio = Column(String(500), nullable=False)
+    estat = Column(String(20), default=EstatPeticio.PENDENT)
+
+    usuari_solicitant = Column(Integer, ForeignKey("usuari.id"), nullable=False)
+
+    usuari = relationship("Usuari", back_populates="peticioPromo")
+```

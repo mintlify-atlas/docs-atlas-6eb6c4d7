@@ -1,0 +1,75 @@
+---
+title: "Managing users"
+description: "View all registered users and change their roles using the admin user management interface."
+---
+
+The user management section lets you see every account registered on TravelConnect and change any user's role. Navigate to `/admin/users` to access it.
+
+## User list
+
+The page fetches all users from `GET /admin/users` and displays them in a table. The following fields are shown for each user:
+
+| Field | Description |
+|---|---|
+| `id` | The user's unique integer ID |
+| `email` | The user's email address |
+| `full_name` | The user's display name |
+| `rol` | Current role: `Viatger`, `Creador`, or `Admin` |
+| `bio` | Optional short biography |
+
+## Changing a user's role
+
+The UI offers a **Cambiar a Creador / Cambiar a Viajero** button for every non-Admin user. Clicking it toggles the role between `Viatger` and `Creador`. To change a role directly via the API — for example to assign the `Admin` role — send a `PUT` request manually.
+
+<Steps>
+  <Step title="Open the user list">
+    Navigate to `/admin/users`. The page loads all registered accounts automatically.
+  </Step>
+  <Step title="Locate the user">
+    Find the user in the table by name, email, or ID. Their current role is shown as a badge in the **Rol** column.
+  </Step>
+  <Step title="Click the role button">
+    Click the **Cambiar a Creador** or **Cambiar a Viajero** button in the **Acciones** column. The button is not shown for users who already have the `Admin` role.
+  </Step>
+  <Step title="Confirm the change">
+    The role updates immediately on the server and the badge in the table refreshes to reflect the new value.
+  </Step>
+</Steps>
+
+## Changing a role via the API
+
+To change any user's role — including assigning the `Admin` role, which the UI does not offer — call the promote endpoint directly:
+
+```http
+PUT /admin/users/{user_id}/promote
+Content-Type: application/json
+
+{
+  "new_rol": "Creador"
+}
+```
+
+Accepted values for `new_rol`:
+
+| Value | Role granted |
+|---|---|
+| `Viatger` | Standard traveler — can browse and join trips |
+| `Creador` | Creator — can also publish and manage their own trips |
+| `Admin` | Administrator — full platform access |
+
+The endpoint returns the updated `UsuariResponse` object on success, or `404` if the user ID does not exist.
+
+## Common use cases
+
+<AccordionGroup>
+  <Accordion title="Demoting a misbehaving creator">
+    If a Creator is misusing their publishing privileges, set their `new_rol` to `Viatger`. This immediately removes their ability to create or edit trips.
+  </Accordion>
+  <Accordion title="Promoting a trusted user directly">
+    Instead of waiting for a user to submit a promotion request, an Admin can set `new_rol` to `Creador` directly from this page — bypassing the promotion request workflow entirely.
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+Setting `new_rol` to `Admin` grants full administrative access, including the ability to change other users' roles. Only assign the Admin role to fully trusted accounts. There is no confirmation step — the change takes effect immediately.
+</Warning>

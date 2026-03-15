@@ -1,0 +1,124 @@
+---
+title: 'Authentication'
+description: 'How to register, log in, and manage your session on TravelConnect.'
+---
+
+TravelConnect uses JWT-based authentication. This guide walks you through creating an account, logging in, and understanding how your session is maintained.
+
+## Registering a new account
+
+<Steps>
+  <Step title="Navigate to the registration page">
+    Go to `/register` in your browser. You will see the **Crear Cuenta** form.
+  </Step>
+
+  <Step title="Fill in your details">
+    Complete the registration form with the following fields:
+
+    | Field | Required | Description |
+    |-------|----------|-------------|
+    | `full_name` | Yes | Your display name (e.g. "Joan Pérez") |
+    | `email` | Yes | A valid email address — must be unique |
+    | `password` | Yes | Your chosen password |
+
+    The `rol` field is set automatically to `Viatger` for all new accounts.
+  </Step>
+
+  <Step title="Submit the form">
+    Click **Registrarse**. The frontend sends a `POST` request to `/auth/register`:
+
+    ```json
+    {
+      "full_name": "Joan Pérez",
+      "email": "joan@example.com",
+      "password": "mysecretpassword",
+      "rol": "Viatger"
+    }
+    ```
+
+    On success, you are redirected to `/login`.
+  </Step>
+</Steps>
+
+<Note>
+  If the email is already registered, the server returns a `400` error: `"Email ya registrado"`. Choose a different email address.
+</Note>
+
+## Logging in
+
+<Steps>
+  <Step title="Navigate to the login page">
+    Go to `/login`. You will see the **Iniciar Sesión** form.
+  </Step>
+
+  <Step title="Enter your credentials">
+    Enter your registered email address and password.
+  </Step>
+
+  <Step title="Submit the form">
+    Click **Entrar**. The frontend sends a `POST` request to `/auth/login` using the OAuth2 `application/x-www-form-urlencoded` format. The `username` field holds your email address:
+
+    ```http
+    POST /auth/login
+    Content-Type: application/x-www-form-urlencoded
+
+    username=joan%40example.com&password=mysecretpassword
+    ```
+  </Step>
+
+  <Step title="Receive the JWT token">
+    On success, the server returns:
+
+    ```json
+    {
+      "access_token": "<jwt_token>",
+      "token_type": "bearer",
+      "rol": "Viatger"
+    }
+    ```
+
+    The token is valid for **30 minutes**. After it expires, you must log in again.
+  </Step>
+
+  <Step title="Redirect to the dashboard">
+    After a successful login, you are redirected to `/dashboard`.
+  </Step>
+</Steps>
+
+## How the JWT token is stored and used
+
+After login, the token is stored in your browser's `localStorage` under the key `token`. Every subsequent API request automatically includes the token in the `Authorization` header via an Axios interceptor:
+
+```http
+Authorization: Bearer <your_jwt_token>
+```
+
+The token payload contains:
+- `sub` — your numeric user ID
+- `rol` — your role (`Viatger`, `Creador`, or `Admin`)
+- `username` — your display name or email
+- `exp` — expiry timestamp
+
+The `AuthContext` decodes the token on page load. If the token has expired, it is removed automatically and you are treated as logged out.
+
+## Logging out
+
+Click the logout option in the navigation bar. This calls the `logout` function from `AuthContext`, which:
+
+1. Removes the token from `localStorage`.
+2. Clears the authenticated user state.
+3. Returns you to the unauthenticated state.
+
+No server-side request is required — invalidation is handled entirely on the client by discarding the token.
+
+## Roles
+
+Every account has one of three roles:
+
+| Role | Description |
+|------|-------------|
+| `Viatger` | Default role. Can browse and join trips. |
+| `Creador` | Can create and manage their own trips. |
+| `Admin` | Full access — can manage all trips and users. |
+
+Your role is displayed on your profile page at `/profile`. To request an upgrade from `Viatger` to `Creador`, see [Managing your profile](/guides/managing-profile).

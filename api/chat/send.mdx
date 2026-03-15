@@ -1,0 +1,80 @@
+---
+title: 'Send chat message'
+description: 'Send a message to a trip chat room.'
+---
+
+`POST /missatges/trips/{trip_id}/chat/send`
+
+Sends a new message to the chat room of the specified trip.
+
+<Note>
+  Authentication is required. Any role may send messages.
+</Note>
+
+## Request
+
+<ParamField path="trip_id" type="integer" required>
+  The unique ID of the trip to send the message to.
+</ParamField>
+
+Request body must be JSON.
+
+<ParamField body="contingut" type="string" required>
+  Text content of the message. Maximum 1000 characters.
+</ParamField>
+
+### Example request
+
+```bash
+curl -X POST http://localhost:8000/missatges/trips/1/chat/send \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"contingut": "Hola a tothom! Quines són les dates definitives?"}'
+```
+
+## Response
+
+<ResponseField name="id" type="integer" required>
+  Unique identifier for the new message.
+</ResponseField>
+
+<ResponseField name="contingut" type="string" required>
+  Text content of the message.
+</ResponseField>
+
+<ResponseField name="viatge_xat" type="integer" required>
+  ID of the trip the message belongs to.
+</ResponseField>
+
+<ResponseField name="autor_xat" type="integer" required>
+  ID of the authenticated user who sent the message.
+</ResponseField>
+
+<ResponseField name="autor_nom" type="string">
+  Display name of the sender (`full_name` if set, otherwise `email`).
+</ResponseField>
+
+<ResponseField name="timestamp" type="string" required>
+  ISO 8601 datetime when the message was created.
+</ResponseField>
+
+### Example response
+
+```json
+{
+  "id": 3,
+  "contingut": "Hola a tothom! Quines són les dates definitives?",
+  "viatge_xat": 1,
+  "autor_xat": 42,
+  "autor_nom": "Maria Garcia",
+  "timestamp": "2026-06-10T14:32:00"
+}
+```
+
+## Errors
+
+| Status | Detail | Cause |
+|--------|--------|-------|
+| `400` | `Error al crear missatge` | The message could not be saved. |
+| `401` | `Token no vàlid` | Missing or invalid JWT token. |
+| `404` | `Usuari no trobat` | Token is valid but user no longer exists in the database. |

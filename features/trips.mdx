@@ -1,0 +1,145 @@
+---
+title: "Trips"
+description: "How TravelConnect trips work: the data model, status lifecycle, discovery, enrollment, and who can create them."
+---
+
+A **trip** (Viatge) is the central entity in TravelConnect. It represents a group travel event with a fixed destination, date range, participant cap, and a status that moves through a defined lifecycle.
+
+## Trip fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | integer | — | Auto-assigned primary key. |
+| `nom` | string (50) | Yes | Display name of the trip. |
+| `desti` | string (50) | Yes | Destination of the trip. |
+| `data_inici` | string (10) | No | Start date in `YYYY-MM-DD` format. |
+| `data_fi` | string (10) | No | End date in `YYYY-MM-DD` format. |
+| `maxim_participants` | integer | No | Maximum number of participants. Defaults to `10`. |
+| `descripcio` | string (200) | No | Free-text description of the trip. |
+| `estat` | string (50) | No | Current status. Defaults to `Planificant`. |
+| `creador_id` | integer | Yes | ID of the user who created the trip. |
+
+## Status lifecycle
+
+Every trip passes through states defined by the `EstatPlanificacio` enum.
+
+```python
+class EstatPlanificacio(str, enum.Enum):
+    PLANIFICANT = "Planificant"
+    ACTIU = "Actiu"
+    COMPLET = "Complet"
+    CANCEL·LAT = "Cancel·lat"
+```
+
+<Steps>
+  <Step title="Planificant (Planning)">
+    The default state when a trip is first created. The trip is being set up and is visible to all users.
+  </Step>
+  <Step title="Actiu (Active)">
+    The trip is open and accepting participants. Enrollment is available.
+  </Step>
+  <Step title="Complet or Cancel·lat">
+    Terminal states. **Complet** means the trip has concluded. **Cancel·lat** means the trip was cancelled. Enrollment is no longer available in either state.
+  </Step>
+</Steps>
+
+<Note>
+  Status transitions are managed by the trip creator or an Admin by editing the trip's `estat` field via `PUT /creator/trips/{id}`.
+</Note>
+
+## Discovering trips
+
+Any visitor — authenticated or not — can retrieve the full list of trips.
+
+```http
+GET /viatge/trips
+```
+
+The response is an array of trip objects. The frontend (`listaViajes.jsx`) renders each trip as a card in a responsive grid. Creators and Admins also see a **Create New Trip** button on this page.
+
+To fetch a single trip's details including its participant list:
+
+```http
+GET /viatge/trips/{id}
+```
+
+## Enrollment
+
+Authenticated users can join or leave a trip.
+
+<Tabs>
+  <Tab title="Join a trip">
+    ```http
+    POST /viatge/trips/{id}/enroll
+    Authorization: Bearer <token>
+    ```
+
+    The backend adds a row to the `usuariViatge` join table, linking the user to the trip. The endpoint returns an error if the participant cap (`maxim_participants`) has already been reached.
+  </Tab>
+  <Tab title="Leave a trip">
+    ```http
+    POST /viatge/trips/{id}/leave
+    Authorization: Bearer <token>
+    ```
+
+    Removes the user from the trip's participant list.
+  </Tab>
+</Tabs>
+
+<Note>
+  The **Inscribirse ahora** (Enroll now) button is only shown to users with the `Viatger` role. Creators and Admins manage trips rather than enrolling as participants.
+</Note>
+
+## Creating and editing trips
+
+Only users with the `Creador` or `Admin` role can create or edit trips.
+
+<Tabs>
+  <Tab title="Create a trip">
+    ```http
+    POST /creator/trips
+    Authorization: Bearer <token>
+    Content-Type: application/json
+
+    {
+      "nom": "Alps Hiking Week",
+      "desti": "Chamonix, France",
+      "data_inici": "2026-07-01",
+      "data_fi": "2026-07-08",
+      "maxim_participants": 12,
+      "descripcio": "A week of guided hikes in the French Alps."
+    }
+    ```
+  </Tab>
+  <Tab title="Edit a trip">
+    ```http
+    PUT /creator/trips/{id}
+    Authorization: Bearer <token>
+    Content-Type: application/json
+
+    {
+      "estat": "Actiu"
+    }
+    ```
+
+    Creators can only edit their own trips. Admins can edit any trip.
+  </Tab>
+</Tabs>
+
+The router enforces role access before delegating to the CRUD layer:
+
+```python
+if usuari.rol not in ["Creador", "Admin"]:
+    raise HTTPException(
+        status_code=403,
+        detail=f"Permiso denegado. Tu rol actual es: {usuari.rol}"
+    )
+```
+
+## Data relationships
+
+A trip connects to three other entities:
+
+- **Participants** — via the `UsuariViatge` join table (many-to-many with `Usuari`).
+- **Chat messages** — via `MissatgeXat` (one-to-many).
+- **Creator** — via `creador_id` foreign key to `Usuari`.

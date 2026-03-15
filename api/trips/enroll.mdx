@@ -1,0 +1,47 @@
+---
+title: 'Enroll in trip'
+description: 'Enroll the currently authenticated user in a trip.'
+---
+
+`POST /viatge/trips/{id}/enroll`
+
+Enrolls the authenticated user in the specified trip.
+
+<Note>
+  Authentication is required. Any role (`Viatger`, `Creador`, `Admin`) may enroll.
+</Note>
+
+## Request
+
+<ParamField path="id" type="integer" required>
+  The unique ID of the trip to enroll in.
+</ParamField>
+
+No request body.
+
+### Example request
+
+```bash
+curl -X POST http://localhost:8000/viatge/trips/1/enroll \
+  -H "Authorization: Bearer <token>"
+```
+
+## Response
+
+Returns a confirmation object on success. The exact shape depends on the CRUD layer, but indicates the enrollment was created.
+
+### Example response
+
+```json
+{
+  "detail": "Enrolled successfully"
+}
+```
+
+## Errors
+
+| Status | Detail | Cause |
+|--------|--------|-------|
+| `400` | Enrollment error message | Already enrolled, trip is full, or other business rule violation. |
+| `401` | `Token no vàlid` | Missing or invalid JWT token. |
+| `404` | `Usuari no trobat` | Token is valid but user no longer exists in the database. |

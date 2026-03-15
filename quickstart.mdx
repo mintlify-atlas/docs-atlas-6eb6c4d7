@@ -1,80 +1,155 @@
 ---
 title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+description: "Get TravelConnect running on your local machine in under 10 minutes."
 ---
 
-## Get started in three steps
+## Prerequisites
 
-Get your documentation site running locally and make your first customization.
+Before you begin, make sure you have the following installed:
 
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+<CardGroup cols={3}>
+  <Card title="Python 3.10+" icon="python">
+    Required to run the FastAPI backend. Check with `python --version`.
+  </Card>
+  <Card title="Node.js 18+" icon="node">
+    Required to run the Vite/React frontend. Check with `node --version`.
+  </Card>
+  <Card title="MySQL 8+" icon="database">
+    TravelConnect uses MySQL. The default config expects a local instance on port 3306.
+  </Card>
 </CardGroup>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+---
+
+## Setup
+
+<Steps>
+  <Step title="Clone the repository">
+    <CodeGroup>
+      ```bash Terminal
+      git clone https://github.com/your-org/travelconnect.git
+      cd travelconnect
+      ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Create the MySQL database">
+    TravelConnect expects a database named `travelconect` (note the single `n`) on `localhost:3306`.
+
+    <CodeGroup>
+      ```sql MySQL
+      CREATE DATABASE travelconect;
+      ```
+    </CodeGroup>
+
+    <Note>
+      The default credentials in `Backend/db/database.py` are `root` / `1234`. Update the `DATABASE_URL` in that file if your MySQL setup uses different credentials.
+    </Note>
+  </Step>
+
+  <Step title="Set up the Python backend">
+    Create and activate a virtual environment, then install dependencies.
+
+    <CodeGroup>
+      ```bash macOS / Linux
+      cd Backend
+      python -m venv .venv
+      source .venv/bin/activate
+      pip install fastapi uvicorn sqlalchemy pymysql passlib bcrypt python-jose python-multipart pydantic[email]
+      ```
+
+      ```bash Windows
+      cd Backend
+      python -m venv .venv
+      .venv\Scripts\activate
+      pip install fastapi uvicorn sqlalchemy pymysql passlib bcrypt python-jose python-multipart pydantic[email]
+      ```
+    </CodeGroup>
+
+    <Tip>
+      If the project ships a `requirements.txt` in the future, replace the `pip install` line above with `pip install -r requirements.txt`.
+    </Tip>
+  </Step>
+
+  <Step title="Configure the secret key">
+    The JWT secret key is currently hardcoded as `"clavemegasecreta"` in `Backend/auth/config.py`. For any environment beyond local development, replace it with a strong random value.
+
+    <CodeGroup>
+      ```bash Generate a secure key
+      python -c "import secrets; print(secrets.token_hex(32))"
+      ```
+    </CodeGroup>
+
+    <Warning>
+      Never use the default `"clavemegasecreta"` value in a staging or production environment. JWT tokens signed with a known secret can be forged.
+    </Warning>
+  </Step>
+
+  <Step title="Start the FastAPI server">
+    From inside the `Backend/` directory with the virtualenv active:
+
+    <CodeGroup>
+      ```bash Terminal
+      uvicorn main:app --reload
+      ```
+    </CodeGroup>
+
+    The API will be available at `http://localhost:8000`. On startup, SQLAlchemy automatically creates all database tables defined in the models.
+
+    Confirm the server is running by visiting `http://localhost:8000` — you should see:
+
+    ```json
+    { "mensaje": "HOLA" }
+    ```
+
+    <Tip>
+      The interactive API docs (Swagger UI) are available at `http://localhost:8000/docs`. Use them to explore and test every endpoint without a separate HTTP client.
+    </Tip>
+  </Step>
+
+  <Step title="Set up the React frontend">
+    Open a new terminal from the repository root:
+
+    <CodeGroup>
+      ```bash Terminal
+      cd FrontEnd
+      npm install
+      npm run dev
+      ```
+    </CodeGroup>
+
+    Vite will start a development server at `http://localhost:5173`. The backend's CORS policy explicitly allows this origin, so API calls will work without any additional configuration.
+  </Step>
+
+  <Step title="Register your first account">
+    Open `http://localhost:5173` in your browser and navigate to the registration page.
+
+    You'll need to provide:
+
+    | Field | Description |
+    |---|---|
+    | `email` | A valid email address (unique per user) |
+    | `full_name` | Optional display name |
+    | `password` | Will be stored as a bcrypt hash |
+    | `rol` | Defaults to `Viatger`; options are `Viatger`, `Creador`, or `Admin` |
+
+    After registering, log in with your email and password. The backend returns a JWT bearer token (valid for **30 minutes**) that the frontend uses to authenticate subsequent requests.
+
+    <Note>
+      The `Creador` role allows users to publish trips. The `Admin` role grants access to the `/admin` routes. A newly registered user is always a `Viatger` unless the role is explicitly set during registration.
+    </Note>
+  </Step>
+</Steps>
+
+---
+
+## What's running
+
+Once both processes are up, you have the full TravelConnect stack running locally:
+
+| Service | URL |
+|---|---|
+| React frontend | `http://localhost:5173` |
+| FastAPI backend | `http://localhost:8000` |
+| Swagger UI | `http://localhost:8000/docs` |
+| MySQL database | `localhost:3306/travelconect` |

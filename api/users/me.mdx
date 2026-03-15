@@ -1,0 +1,68 @@
+---
+title: 'Get current user'
+description: 'Retrieve the profile of the currently authenticated user.'
+---
+
+`GET /users/users/me`
+
+Returns the full profile of the user identified by the JWT token.
+
+<Note>
+  Authentication is required. Returns data for the token's owner only.
+</Note>
+
+<Note>
+  The path `/users/users/me` results from the `/users` prefix in `main.py` combined with the `/users` prefix declared on the router itself.
+</Note>
+
+## Request
+
+No parameters.
+
+### Example request
+
+```bash
+curl http://localhost:8000/users/users/me \
+  -H "Authorization: Bearer <token>"
+```
+
+## Response
+
+<ResponseField name="id" type="integer" required>
+  Unique identifier of the user.
+</ResponseField>
+
+<ResponseField name="email" type="string" required>
+  The user's email address.
+</ResponseField>
+
+<ResponseField name="full_name" type="string">
+  Display name, or `null` if not set.
+</ResponseField>
+
+<ResponseField name="rol" type="string" required>
+  The user's role: `Viatger`, `Creador`, or `Admin`.
+</ResponseField>
+
+<ResponseField name="bio" type="string">
+  Biography, or `null` if not set.
+</ResponseField>
+
+### Example response
+
+```json
+{
+  "id": 42,
+  "email": "maria@example.com",
+  "full_name": "Maria Garcia",
+  "rol": "Viatger",
+  "bio": "Apassionada dels viatges i la muntanya."
+}
+```
+
+## Errors
+
+| Status | Detail | Cause |
+|--------|--------|-------|
+| `401` | `Token no vàlid` | Missing or invalid JWT token. |
+| `404` | `Usuari no trobat` | Token is valid but user no longer exists in the database. |

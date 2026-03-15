@@ -1,0 +1,76 @@
+---
+title: 'Browsing trips'
+description: 'How to navigate the trips dashboard and explore available trips on TravelConnect.'
+---
+
+The trips dashboard is the central hub for discovering travel experiences on TravelConnect. You must be logged in to access it.
+
+## Navigating to the dashboard
+
+<Steps>
+  <Step title="Log in to your account">
+    Complete the login flow at `/login`. On success you are redirected automatically to `/dashboard`.
+  </Step>
+
+  <Step title="Open the trips list">
+    The dashboard loads the **Explorar Viajes** page, which fetches all available trips from the API:
+
+    ```http
+    GET /viatge/trips
+    ```
+
+    Trips are returned as a list and rendered as individual trip cards in a responsive grid.
+  </Step>
+</Steps>
+
+<Note>
+  `/dashboard` is a protected route. If you navigate to it without a valid session, you will be redirected to the login page.
+</Note>
+
+## Browsing the trip cards
+
+Each card in the grid represents one trip and displays a summary of its key details. The grid adapts across screen sizes — one column on mobile, two on medium screens, and three on large screens.
+
+If no trips are available, the page displays: *"No hay viajes disponibles en este momento."*
+
+## Viewing trip details
+
+<Steps>
+  <Step title="Click a trip card">
+    Click any trip card to navigate to its detail page at `/trips/:id`.
+  </Step>
+
+  <Step title="Review the trip information">
+    The detail page shows a full breakdown of the trip under the **Información** tab:
+
+    | Field | Description |
+    |-------|-------------|
+    | **Destination** (`desti`) | The travel destination |
+    | **Start date** (`data_inici`) | When the trip begins |
+    | **End date** (`data_fi`) | When the trip ends |
+    | **Description** (`descripcio`) | A detailed description of the trip |
+    | **Participants** | Current enrolled count vs. the maximum (`maxim_participants`) |
+    | **Status** (`estat`) | One of: `Planificant`, `Actiu`, `Complet`, `Cancel·lat` |
+  </Step>
+
+  <Step title="Check availability">
+    The sidebar on the detail page shows the capacity at a glance:
+
+    - **Capacity** — maximum number of participants
+    - **Enrolled** — how many people have already joined
+
+    If there is space, a **Inscribirse ahora** button is available for `Viatger` users.
+  </Step>
+</Steps>
+
+## Group chat
+
+Once you are enrolled in a trip, a **Chat del Grupo** tab appears on the detail page. Admins can always see the chat tab regardless of enrollment. Trip chat messages are fetched from `/missatges/trips/:id/chat`.
+
+## Creating a new trip
+
+If your account has the `Creador` or `Admin` role, a **+ Crear Nuevo Viaje** button appears in the top-right corner of the trips list. Click it to navigate to `/trips/create`.
+
+<Tip>
+  Only `Creador` and `Admin` accounts can create trips. If you are a `Viatger` and want to create trips, request a promotion from your profile page. See [Managing your profile](/guides/managing-profile).
+</Tip>

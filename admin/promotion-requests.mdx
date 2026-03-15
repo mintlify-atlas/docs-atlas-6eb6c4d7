@@ -1,0 +1,81 @@
+---
+title: "Promotion requests"
+description: "Review and act on Creator promotion requests submitted by Viatger users."
+---
+
+When a Viatger wants to become a Creator, they submit a promotion request with a message explaining their intent. Admins review these requests at `/admin/requests` and approve or reject each one.
+
+## Viewing pending requests
+
+The page calls `GET /admin/users/promotions` to load all promotion requests. Each request includes:
+
+| Field | Description |
+|---|---|
+| `id` | Unique request ID |
+| `usuari_solicitant` | ID of the user who submitted the request |
+| `missatge_peticio` | The user's message explaining why they want to become a Creator |
+| `estat` | Current status: `pendent`, `aprovat`, or `denegat` |
+
+<Note>
+The page shows all requests regardless of status. Only requests with `estat` set to `pendent` display the approve and reject action buttons.
+</Note>
+
+## Reviewing and acting on a request
+
+<Steps>
+  <Step title="Open the requests page">
+    Navigate to `/admin/requests`. The table loads all promotion requests automatically.
+  </Step>
+  <Step title="Read the justification">
+    Review the **Mensaje / Justificación** column. This is the `missatge_peticio` the user wrote when submitting their request — their explanation for why they should become a Creator.
+  </Step>
+  <Step title="Approve or reject">
+    For any request with a **Pendiente** badge, click **Aprobar** to grant Creator status or **Denegar** to refuse. The request status badge updates on the next page refresh.
+  </Step>
+  <Step title="Verify the outcome">
+    Confirm the request now shows the **Aprobado** or **Denegado** badge. If approved, you can verify the user's role changed to `Creador` in the [user management page](/admin/managing-users).
+  </Step>
+</Steps>
+
+## What each action does
+
+### Approving a request
+
+Sending `PUT /admin/promotions/{user_id}` with `new_estado: "aprovat"` does two things:
+
+1. Sets the `PeticioPromo` record's `estat` to `aprovat`.
+2. Updates the user's `rol` to `Creador`, granting them trip creation and editing permissions immediately.
+
+```http
+PUT /admin/promotions/{user_id}
+Content-Type: application/json
+
+{
+  "new_estado": "aprovat"
+}
+```
+
+### Rejecting a request
+
+Sending `new_estado: "denegat"` marks the request as rejected. The user's role remains `Viatger` — no permissions change.
+
+```http
+PUT /admin/promotions/{user_id}
+Content-Type: application/json
+
+{
+  "new_estado": "denegat"
+}
+```
+
+<Tip>
+If you want to promote a user without waiting for them to submit a request, you can change their role directly from the [managing users](/admin/managing-users) page.
+</Tip>
+
+## Request status reference
+
+| `estat` value | Meaning |
+|---|---|
+| `pendent` | Request submitted, awaiting admin decision |
+| `aprovat` | Request approved, user's role is now `Creador` |
+| `denegat` | Request rejected, user remains `Viatger` |

@@ -1,0 +1,70 @@
+---
+title: 'Update promotion request'
+description: 'Approve or deny a user promotion request.'
+---
+
+`PUT /admin/promotions/{user_id}`
+
+Updates the status of a promotion request.
+
+<Note>
+  No role check is enforced at the route level, but this endpoint is intended for `Admin` users only.
+</Note>
+
+## Request
+
+<ParamField path="user_id" type="integer" required>
+  The ID of the user whose promotion request to update.
+</ParamField>
+
+Request body must be JSON.
+
+<ParamField body="new_estado" type="string" required>
+  New status for the request. One of: `pendent`, `aprovat`, `denegat`.
+</ParamField>
+
+### Example request
+
+```bash
+curl -X PUT http://localhost:8000/admin/promotions/42 \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"new_estado": "aprovat"}'
+```
+
+## Response
+
+Returns the updated promotion request object.
+
+<ResponseField name="id" type="integer" required>
+  Unique identifier of the promotion request.
+</ResponseField>
+
+<ResponseField name="missatge_peticio" type="string" required>
+  The original message submitted by the user.
+</ResponseField>
+
+<ResponseField name="estat" type="string" required>
+  Updated status. One of: `pendent`, `aprovat`, `denegat`.
+</ResponseField>
+
+<ResponseField name="usuari_solicitant" type="integer" required>
+  ID of the user who submitted the request.
+</ResponseField>
+
+### Example response
+
+```json
+{
+  "id": 1,
+  "missatge_peticio": "Vull crear viatges per a la meva comunitat.",
+  "estat": "aprovat",
+  "usuari_solicitant": 42
+}
+```
+
+## Errors
+
+| Status | Detail | Cause |
+|--------|--------|-------|
+| `404` | `Promocion no encontrada` | No promotion request exists for the given `user_id`. |

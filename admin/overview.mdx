@@ -1,0 +1,38 @@
+---
+title: "Admin guide"
+description: "Understand the Admin role in TravelConnect and how to access the administrative sections of the platform."
+---
+
+Admins are the only users with access to the `/admin/users` and `/admin/requests` routes. The Admin role sits at the top of TravelConnect's three-tier permission system, with full authority over user management, promotion decisions, and trip data.
+
+<Warning>
+Some admin actions — such as changing a user's role — take effect immediately and cannot be undone through the UI. Review carefully before confirming any change.
+</Warning>
+
+## Admin responsibilities
+
+- **User management** — View every registered user and change their role at any time.
+- **Promotion approvals** — Review Creator promotion requests and approve or reject them.
+- **Full trip management** — Admins can create and edit any trip, regardless of who created it.
+
+## Accessing admin features
+
+Admins access the administrative sections directly by navigating to these routes in the frontend:
+
+| Route | Purpose |
+|---|---|
+| `/admin/users` | View all users and change their roles |
+| `/admin/requests` | Review and act on pending Creator promotion requests |
+
+These routes are only rendered and accessible to users whose `rol` is `Admin`. Any other role navigating to these paths will not have access.
+
+## Admin sections
+
+<CardGroup cols={2}>
+  <Card title="Managing users" icon="users" href="/admin/managing-users">
+    View every user account, inspect their role and profile, and promote or demote them between Viatger and Creador.
+  </Card>
+  <Card title="Promotion requests" icon="arrow-up-circle" href="/admin/promotion-requests">
+    Review pending requests from Viatgers who want to become Creators, then approve or reject each one.
+  </Card>
+</CardGroup>

@@ -1,0 +1,84 @@
+---
+title: 'Get trip'
+description: 'Retrieve a single trip by its ID.'
+---
+
+`GET /viatge/trips/{id}`
+
+Returns the details of a single trip.
+
+<Note>
+  Authentication is not required for this endpoint.
+</Note>
+
+## Request
+
+<ParamField path="id" type="integer" required>
+  The unique ID of the trip to retrieve.
+</ParamField>
+
+### Example request
+
+```bash
+curl http://localhost:8000/viatge/trips/1
+```
+
+## Response
+
+<ResponseField name="id" type="integer" required>
+  Unique identifier for the trip.
+</ResponseField>
+
+<ResponseField name="creador_id" type="integer" required>
+  ID of the user who created the trip.
+</ResponseField>
+
+<ResponseField name="nom" type="string" required>
+  Name of the trip.
+</ResponseField>
+
+<ResponseField name="desti" type="string" required>
+  Destination of the trip.
+</ResponseField>
+
+<ResponseField name="data_inici" type="string" required>
+  Start date in `YYYY-MM-DD` format.
+</ResponseField>
+
+<ResponseField name="data_fi" type="string" required>
+  End date in `YYYY-MM-DD` format.
+</ResponseField>
+
+<ResponseField name="maxim_participants" type="integer" required>
+  Maximum number of participants allowed.
+</ResponseField>
+
+<ResponseField name="descripcio" type="string">
+  Optional description of the trip.
+</ResponseField>
+
+<ResponseField name="estat" type="string" required>
+  Planning status. One of: `Planificant`, `Actiu`, `Complet`, `Cancel·lat`.
+</ResponseField>
+
+### Example response
+
+```json
+{
+  "id": 1,
+  "creador_id": 5,
+  "nom": "Ruta pels Pirineus",
+  "desti": "Pirineus",
+  "data_inici": "2026-07-01",
+  "data_fi": "2026-07-10",
+  "maxim_participants": 12,
+  "descripcio": "Ruta de senderisme pels Pirineus catalans.",
+  "estat": "Planificant"
+}
+```
+
+## Errors
+
+| Status | Detail | Cause |
+|--------|--------|-------|
+| `404` | Resource not found | No trip exists with the given `id`. |

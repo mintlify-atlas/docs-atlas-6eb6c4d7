@@ -1,0 +1,102 @@
+---
+title: 'Managing your profile'
+description: 'How to view and update your TravelConnect profile, see your enrolled trips, and request a Creator promotion.'
+---
+
+Your profile page shows your account information and lets you update your display name and bio.
+
+## Viewing your profile
+
+<Steps>
+  <Step title="Navigate to the profile page">
+    Go to `/profile`. The page fetches your account data from:
+
+    ```http
+    GET /users/users/me
+    Authorization: Bearer <your_jwt_token>
+    ```
+
+    The response includes your `email`, `full_name`, `bio`, `rol`, and `id`.
+  </Step>
+
+  <Step title="Review your information">
+    Your profile displays the following fields:
+
+    | Field | Description |
+    |-------|-------------|
+    | **Email** | Your registered email address (read-only) |
+    | **Full name** (`full_name`) | Your display name |
+    | **Bio** | A short personal description |
+    | **Current role** (`rol`) | `Viatger`, `Creador`, or `Admin` |
+  </Step>
+</Steps>
+
+## Updating your display name and bio
+
+<Steps>
+  <Step title="Click Editar Perfil">
+    On your profile page, click the **Editar Perfil** button to switch to the edit form.
+  </Step>
+
+  <Step title="Update your details">
+    Modify your **Nombre Completo** (`full_name`) and/or **Biografía** (`bio`) fields.
+  </Step>
+
+  <Step title="Save your changes">
+    Click **Guardar Cambios**. The frontend sends a `PUT` request with your new name and bio URL-encoded as path parameters:
+
+    ```http
+    PUT /users/users/me/{nom}/{bio}
+    Authorization: Bearer <your_jwt_token>
+    ```
+
+    For example, updating to the name "Joan" and bio "Hiking enthusiast" would call:
+
+    ```http
+    PUT /users/users/me/Joan/Hiking%20enthusiast
+    Authorization: Bearer <your_jwt_token>
+    ```
+
+    On success, your profile page updates immediately to reflect the new values.
+  </Step>
+</Steps>
+
+<Note>
+  The `full_name` field is required when saving changes. The `bio` field is optional — you can leave it empty.
+</Note>
+
+## Viewing your enrolled trips
+
+Your profile page reflects your current account state. To see the trips you have joined, return to the dashboard at `/dashboard`. Trips you are enrolled in will show an **Inscrito** status on their detail pages.
+
+## Requesting a Creator promotion
+
+If your current role is `Viatger` and you want to create trips, you can submit a promotion request to an Admin.
+
+<Steps>
+  <Step title="Confirm your current role">
+    Check the **Rol Actual** field on your profile page at `/profile`. It must show `Viatger` to be eligible for a promotion request.
+  </Step>
+
+  <Step title="Submit a promotion request">
+    Send a `POST` request to the promotion endpoint with a message explaining your intent:
+
+    ```http
+    POST /viatge/promote-request
+    Authorization: Bearer <your_jwt_token>
+    Content-Type: application/json
+
+    {
+      "missatge": "I want to organise cultural tours across Europe."
+    }
+    ```
+  </Step>
+
+  <Step title="Wait for approval">
+    An Admin will review your request. Once approved, your role is updated to `Creador`. Log out and log back in to receive an updated token reflecting your new role.
+  </Step>
+</Steps>
+
+<Tip>
+  After your role is upgraded to `Creador`, the **+ Crear Nuevo Viaje** button will appear on the dashboard and you can begin publishing trips. See [Creating trips](/guides/creating-trips) for the full workflow.
+</Tip>

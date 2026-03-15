@@ -1,0 +1,122 @@
+---
+title: 'Edit trip'
+description: 'Update an existing trip. Requires the Creador or Admin role.'
+---
+
+`PUT /creadorViatges/creator/trips/{id}`
+
+Updates an existing trip. A `Creador` can only edit trips they own. An `Admin` can edit any trip.
+
+<Note>
+  Authentication is required. The user must have the `Creador` or `Admin` role. Creators can only edit their own trips.
+</Note>
+
+## Request
+
+<ParamField path="id" type="integer" required>
+  The unique ID of the trip to update.
+</ParamField>
+
+Request body must be JSON. Include only the fields you want to change.
+
+<ParamField body="nom" type="string">
+  Name of the trip. Maximum 50 characters.
+</ParamField>
+
+<ParamField body="desti" type="string">
+  Destination. Maximum 50 characters.
+</ParamField>
+
+<ParamField body="data_inici" type="string">
+  Start date in `YYYY-MM-DD` format.
+</ParamField>
+
+<ParamField body="data_fi" type="string">
+  End date in `YYYY-MM-DD` format.
+</ParamField>
+
+<ParamField body="maxim_participants" type="integer">
+  Maximum number of participants.
+</ParamField>
+
+<ParamField body="descripcio" type="string">
+  Description. Maximum 200 characters.
+</ParamField>
+
+<ParamField body="estat" type="string">
+  Planning status. One of: `Planificant`, `Actiu`, `Complet`, `Cancel·lat`.
+</ParamField>
+
+### Example request
+
+```bash
+curl -X PUT http://localhost:8000/creadorViatges/creator/trips/7 \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "estat": "Actiu",
+    "maxim_participants": 15
+  }'
+```
+
+## Response
+
+<ResponseField name="id" type="integer" required>
+  Unique identifier of the trip.
+</ResponseField>
+
+<ResponseField name="creador_id" type="integer" required>
+  ID of the trip's creator.
+</ResponseField>
+
+<ResponseField name="nom" type="string" required>
+  Name of the trip.
+</ResponseField>
+
+<ResponseField name="desti" type="string" required>
+  Destination of the trip.
+</ResponseField>
+
+<ResponseField name="data_inici" type="string" required>
+  Start date.
+</ResponseField>
+
+<ResponseField name="data_fi" type="string" required>
+  End date.
+</ResponseField>
+
+<ResponseField name="maxim_participants" type="integer" required>
+  Maximum number of participants.
+</ResponseField>
+
+<ResponseField name="descripcio" type="string">
+  Description, or `null`.
+</ResponseField>
+
+<ResponseField name="estat" type="string" required>
+  Current planning status.
+</ResponseField>
+
+### Example response
+
+```json
+{
+  "id": 7,
+  "creador_id": 5,
+  "nom": "Ruta pels Pirineus",
+  "desti": "Pirineus",
+  "data_inici": "2026-07-01",
+  "data_fi": "2026-07-10",
+  "maxim_participants": 15,
+  "descripcio": "Ruta de senderisme pels Pirineus catalans.",
+  "estat": "Actiu"
+}
+```
+
+## Errors
+
+| Status | Detail | Cause |
+|--------|--------|-------|
+| `401` | `Token no vàlid` | Missing or invalid JWT token. |
+| `403` | `No tens permisos` | User does not have the `Creador` or `Admin` role. |
+| `404` | `Viatge no trobat o no ets el creador` | Trip not found, or the authenticated `Creador` does not own it. |

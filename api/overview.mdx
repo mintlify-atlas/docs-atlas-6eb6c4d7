@@ -1,0 +1,122 @@
+---
+title: 'API overview'
+description: 'Reference for the TravelConnect REST API. All endpoints, authentication, and response formats.'
+---
+
+## Base URL
+
+```
+http://localhost:8000
+```
+
+## Authentication
+
+TravelConnect uses JWT Bearer tokens. Obtain a token by calling `POST /auth/login`, then include it in every authenticated request.
+
+```
+Authorization: Bearer <token>
+```
+
+Tokens expire after **30 minutes**. The token payload contains the user's `id`, `rol`, and `username`.
+
+### Roles
+
+| Role | Description |
+|------|-------------|
+| `Viatger` | Default role. Can browse and enroll in trips. |
+| `Creador` | Can create and edit trips. |
+| `Admin` | Full access, including user management. |
+
+## Response format
+
+All responses are JSON. Successful responses return the relevant data object or list directly.
+
+## Error format
+
+Errors follow FastAPI's standard error shape:
+
+```json
+{
+  "detail": "Human-readable error message"
+}
+```
+
+Common HTTP status codes:
+
+| Code | Meaning |
+|------|---------|
+| `200` | Success |
+| `400` | Bad request (validation error or business rule violation) |
+| `401` | Missing or invalid token |
+| `403` | Authenticated but insufficient role |
+| `404` | Resource not found |
+
+## Authenticated request example
+
+```bash
+curl http://localhost:8000/users/users/me \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+## Endpoint groups
+
+<Columns cols={2}>
+  <Card title="Authentication" icon="lock" href="/api/auth/login">
+    Register and log in to obtain a JWT token.
+  </Card>
+  <Card title="Trips" icon="map" href="/api/trips/list">
+    Browse, enroll in, and manage trips.
+  </Card>
+  <Card title="Chat" icon="message-circle" href="/api/chat/messages">
+    Read and send messages in trip chat rooms.
+  </Card>
+  <Card title="Users" icon="user" href="/api/users/me">
+    View and update your own profile.
+  </Card>
+  <Card title="Admin" icon="shield" href="/api/admin/users">
+    Manage users and promotion requests.
+  </Card>
+</Columns>
+
+## All endpoints
+
+### Authentication — `/auth`
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/auth/login` | [Log in and receive a JWT token](/api/auth/login) |
+| `POST` | `/auth/register` | [Register a new user account](/api/auth/register) |
+
+### Trips — `/viatge`
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/viatge/trips` | [List all trips](/api/trips/list) |
+| `GET` | `/viatge/trips/{id}` | [Get a single trip](/api/trips/get) |
+| `POST` | `/viatge/trips/{id}/enroll` | [Enroll in a trip](/api/trips/enroll) |
+| `POST` | `/viatge/trips/{id}/leave` | [Leave a trip](/api/trips/leave) |
+| `POST` | `/creadorViatges/creator/trips` | [Create a trip](/api/trips/create) |
+| `PUT` | `/creadorViatges/creator/trips/{id}` | [Edit a trip](/api/trips/edit) |
+
+### Chat — `/missatges`
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/missatges/trips/{trip_id}/chat` | [Get messages for a trip](/api/chat/messages) |
+| `POST` | `/missatges/trips/{trip_id}/chat/send` | [Send a message](/api/chat/send) |
+
+### Users — `/users`
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/users/users/me` | [Get current user profile](/api/users/me) |
+| `PUT` | `/users/users/me/{nom}/{bio}` | [Update profile](/api/users/update-profile) |
+
+### Admin — `/admin`
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/admin/users` | [List all users](/api/admin/users) |
+| `PUT` | `/admin/users/{user_id}/promote` | [Change a user's role](/api/admin/promote-user) |
+| `GET` | `/admin/users/promotions` | [List promotion requests](/api/admin/promotions) |
+| `PUT` | `/admin/promotions/{user_id}` | [Update a promotion request](/api/admin/update-promotion) |

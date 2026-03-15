@@ -1,0 +1,46 @@
+---
+title: 'Leave trip'
+description: 'Remove the currently authenticated user from a trip.'
+---
+
+`POST /viatge/trips/{id}/leave`
+
+Removes the authenticated user from the specified trip.
+
+<Note>
+  Authentication is required. Any role (`Viatger`, `Creador`, `Admin`) may leave a trip.
+</Note>
+
+## Request
+
+<ParamField path="id" type="integer" required>
+  The unique ID of the trip to leave.
+</ParamField>
+
+No request body.
+
+### Example request
+
+```bash
+curl -X POST http://localhost:8000/viatge/trips/1/leave \
+  -H "Authorization: Bearer <token>"
+```
+
+## Response
+
+Returns a confirmation object on success indicating the user was removed from the trip.
+
+### Example response
+
+```json
+{
+  "detail": "Left trip successfully"
+}
+```
+
+## Errors
+
+| Status | Detail | Cause |
+|--------|--------|-------|
+| `401` | `Token no vàlid` | Missing or invalid JWT token. |
+| `404` | `Usuari no trobat` | Token is valid but user no longer exists in the database. |

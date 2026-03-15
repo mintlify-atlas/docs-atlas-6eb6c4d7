@@ -1,0 +1,103 @@
+---
+title: "Roles"
+description: "TravelConnect's three-tier role system: Viatger (Traveler), Creador (Creator), and Admin — what each role can do and how roles are enforced."
+---
+
+TravelConnect uses a three-tier role system. Every user account has exactly one role stored in the `rol` column of the `usuari` table. Roles are defined by the `Rol` enum:
+
+```python
+class Rol(str, enum.Enum):
+    VIATGER = "Viatger"
+    CREADOR = "Creador"
+    ADMIN = "Admin"
+```
+
+New accounts are always created with the `Viatger` role.
+
+## Role overview
+
+<Columns cols={3}>
+  <Card title="Viatger (Traveler)" icon="user">
+    The default role. Browse trips, enroll and leave, participate in trip chat, and request promotion to Creator.
+  </Card>
+  <Card title="Creador (Creator)" icon="pen-to-square">
+    Everything a Traveler can do, plus create new trips and edit their own trips.
+  </Card>
+  <Card title="Admin" icon="crown">
+    Full access: view all users, change any user's role, approve or reject promotion requests, and create or edit any trip.
+  </Card>
+</Columns>
+
+## Permission comparison
+
+| Action | Viatger | Creador | Admin |
+|---|:---:|:---:|:---:|
+| Browse trips (`GET /viatge/trips`) | Yes | Yes | Yes |
+| View trip details (`GET /viatge/trips/{id}`) | Yes | Yes | Yes |
+| Enroll in a trip (`POST /viatge/trips/{id}/enroll`) | Yes | Yes | Yes |
+| Leave a trip (`POST /viatge/trips/{id}/leave`) | Yes | Yes | Yes |
+| Read trip chat (`GET /trips/{id}/chat`) | Enrolled only | Enrolled only | Yes |
+| Send chat messages (`POST /trips/{id}/chat/send`) | Enrolled only | Enrolled only | Yes |
+| Create a trip (`POST /creator/trips`) | No | Yes | Yes |
+| Edit own trips (`PUT /creator/trips/{id}`) | No | Yes | Yes |
+| Edit any trip (`PUT /creator/trips/{id}`) | No | No | Yes |
+| Request Creator promotion (`POST /viatge/promote-request`) | Yes | No | No |
+| View all users (`GET /users`) | No | No | Yes |
+| Change a user's role (`PUT /users/{id}/promote`) | No | No | Yes |
+| View promotion requests (`GET /users/promotions`) | No | No | Yes |
+| Approve/reject promotion (`PUT /promotions/{id}`) | No | No | Yes |
+
+## How roles are enforced
+
+The backend enforces roles in two ways.
+
+### JWT token
+
+After login, the server issues a JWT token that encodes the user's `rol` field. Every protected endpoint calls `get_current_user`, which decodes the token and returns the `Usuari` object including the role.
+
+### Router-level checks
+
+Each router that requires elevated access checks `usuari.rol` directly and raises an HTTP 403 if the role does not match:
+
+```python
+# creadorViatges.py
+if usuari.rol not in ["Creador", "Admin"]:
+    raise HTTPException(
+        status_code=403,
+        detail=f"Permiso denegado. Tu rol actual es: {usuari.rol}"
+    )
+```
+
+### Frontend gating
+
+The frontend also reads the role from the auth context to conditionally show or hide UI elements:
+
+```jsx
+// Show create button only to Creators and Admins
+const mostrarBotonCrear = usuario && (usuario.role === 'Creador' || usuario.role === 'Admin');
+
+// Show edit button only to the trip's creator or any Admin
+const canEdit = usuario && (
+  usuario.role === 'Admin' ||
+  (usuario.role === 'Creador' && viaje.creador_id === usuario.id)
+);
+```
+
+<Warning>
+  Frontend gating is a UX convenience only. All authorization is enforced server-side. Do not rely on hidden UI elements as a security boundary.
+</Warning>
+
+## Changing a role
+
+Only Admins can change a user's role. This is done through the admin promote endpoint:
+
+```http
+PUT /users/{user_id}/promote
+Content-Type: application/json
+
+{
+  "new_rol": "Creador"
+}
+```
+
+In practice, role upgrades from `Viatger` to `Creador` are handled through the promotion request workflow. See [Promotions](/features/promotions) for the full flow.

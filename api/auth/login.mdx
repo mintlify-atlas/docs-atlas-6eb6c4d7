@@ -1,0 +1,62 @@
+---
+title: 'Log in'
+description: 'Authenticate with email and password to receive a JWT access token.'
+---
+
+`POST /auth/login`
+
+Authenticates a user and returns a signed JWT token. The token must be included in the `Authorization` header of subsequent authenticated requests.
+
+<Note>
+  Authentication is not required to call this endpoint.
+</Note>
+
+## Request
+
+This endpoint uses OAuth2 form data (`application/x-www-form-urlencoded`), not JSON.
+
+<ParamField body="username" type="string" required>
+  The user's email address. The field is named `username` for OAuth2 compatibility.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  The user's password in plain text.
+</ParamField>
+
+### Example request
+
+```bash
+curl -X POST http://localhost:8000/auth/login \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "username=maria@example.com&password=secret123"
+```
+
+## Response
+
+<ResponseField name="access_token" type="string" required>
+  Signed JWT token. Include this as `Bearer <access_token>` in the `Authorization` header.
+</ResponseField>
+
+<ResponseField name="token_type" type="string" required>
+  Always `"bearer"`.
+</ResponseField>
+
+<ResponseField name="rol" type="string" required>
+  The authenticated user's role: `Viatger`, `Creador`, or `Admin`.
+</ResponseField>
+
+### Example response
+
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sIjoiVmlhdGdlciIsInVzZXJuYW1lIjoibWFyaWEiLCJleHAiOjE3MDAwMDAwMDB9.abc123",
+  "token_type": "bearer",
+  "rol": "Viatger"
+}
+```
+
+## Errors
+
+| Status | Detail | Cause |
+|--------|--------|-------|
+| `401` | `Email o contrasenya incorrectes` | Email not found or password does not match. |

@@ -1,0 +1,68 @@
+---
+title: 'List promotion requests'
+description: 'Retrieve all user promotion requests.'
+---
+
+`GET /admin/users/promotions`
+
+Returns all promotion requests submitted by users requesting a role upgrade.
+
+<Note>
+  No role check is enforced at the route level, but this endpoint is intended for `Admin` users only.
+</Note>
+
+## Request
+
+No parameters.
+
+### Example request
+
+```bash
+curl http://localhost:8000/admin/users/promotions \
+  -H "Authorization: Bearer <token>"
+```
+
+## Response
+
+Returns an array of promotion request objects.
+
+<ResponseField name="id" type="integer" required>
+  Unique identifier of the promotion request.
+</ResponseField>
+
+<ResponseField name="missatge_peticio" type="string" required>
+  The message submitted by the user explaining why they want to be promoted.
+</ResponseField>
+
+<ResponseField name="estat" type="string" required>
+  Current status of the request. One of: `pendent`, `aprovat`, `denegat`.
+</ResponseField>
+
+<ResponseField name="usuari_solicitant" type="integer" required>
+  ID of the user who submitted the request.
+</ResponseField>
+
+### Example response
+
+```json
+[
+  {
+    "id": 1,
+    "missatge_peticio": "Vull crear viatges per a la meva comunitat.",
+    "estat": "pendent",
+    "usuari_solicitant": 42
+  },
+  {
+    "id": 2,
+    "missatge_peticio": "Organitzo rutes de muntanya cada mes.",
+    "estat": "aprovat",
+    "usuari_solicitant": 17
+  }
+]
+```
+
+## Errors
+
+| Status | Detail | Cause |
+|--------|--------|-------|
+| `404` | `Promociones no encontradas` | No promotion requests exist. |

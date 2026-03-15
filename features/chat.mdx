@@ -1,0 +1,93 @@
+---
+title: "Trip chat"
+description: "How the per-trip chat works: message structure, read and send permissions, and the frontend component."
+---
+
+Every trip in TravelConnect has its own isolated chat room. Messages are scoped to a single trip and are never shared across trips.
+
+## Message structure
+
+Chat messages are stored in the `missatgeXat` table.
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | integer | Auto-assigned primary key. |
+| `contingut` | string (1000) | The text content of the message. |
+| `timestamp` | datetime | When the message was created. |
+| `viatge_xat` | integer | Foreign key to the trip (`viatge.id`). |
+| `autor_xat` | integer | Foreign key to the author (`usuari.id`). |
+
+The `autor` relationship resolves to a `Usuari` record. When the API returns messages, it populates an `autor_nom` field with the author's `full_name`, falling back to `email` if no full name is set.
+
+```python
+if msg.autor:
+    m.autor_nom = msg.autor.full_name or msg.autor.email
+```
+
+## Chat scope per trip
+
+The chat API is prefixed under `/trips`, so every endpoint carries a `trip_id` path parameter that keeps messages fully isolated:
+
+```http
+GET  /trips/{trip_id}/chat
+POST /trips/{trip_id}/chat/send
+```
+
+There is no cross-trip message endpoint. A request to `/trips/3/chat` will only return messages where `viatge_xat = 3`.
+
+## Reading messages
+
+Retrieving the chat history for a trip does **not** require authentication — the endpoint accepts any request:
+
+```http
+GET /trips/{trip_id}/chat
+```
+
+However, the frontend only renders the **Chat** tab for users who are enrolled in the trip or have the `Admin` role:
+
+```jsx
+const canSeeChat = usuario && (usuario.role === 'Admin' || isEnrolled);
+```
+
+This means the chat content is access-controlled at the UI level for enrolled participants and Admins.
+
+## Sending messages
+
+Sending a message requires a valid JWT token. The authenticated user becomes the message author automatically — the client does not pass an author ID.
+
+```http
+POST /trips/{trip_id}/chat/send
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "contingut": "Anyone know the weather forecast for next week?"
+}
+```
+
+The server resolves the author from the token:
+
+```python
+db_missatge = create_missatge(db, trip_id, missatge, autor_id=current_user.id)
+res.autor_nom = current_user.full_name or current_user.email
+```
+
+## Frontend component
+
+The `TripChat` component (`src/componentes/TripChat.jsx`) renders the full chat UI inside the trip detail page.
+
+<AccordionGroup>
+  <Accordion title="Loading messages">
+    On mount, the component calls `getChatMessages(tripId)` and stores the result in local state. A manual **Actualizar** (refresh) button lets users pull the latest messages.
+  </Accordion>
+  <Accordion title="Sending a message">
+    Submitting the form calls `sendChatMessage(tripId, { contingut: text })`. On success, the input is cleared and messages are reloaded. The send button is disabled while a request is in flight.
+  </Accordion>
+  <Accordion title="Message display">
+    Each message shows the `autor_nom` in bold and the `contingut` below it. If `autor_nom` is missing, it falls back to `'Usuario'`.
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+  The chat does not currently use WebSockets. Messages are fetched on demand. Use the **Actualizar** button to see new messages from other participants.
+</Note>

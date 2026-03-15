@@ -1,0 +1,106 @@
+---
+title: 'Creating trips'
+description: 'How to create, publish, and edit trips on TravelConnect. Requires the Creator or Admin role.'
+---
+
+<Note>
+  Creating and editing trips requires the `Creador` or `Admin` role. If your account has the `Viatger` role, you must first request a promotion. See [Joining trips](/guides/joining-trips#requesting-a-creator-promotion).
+</Note>
+
+## Creating a new trip
+
+<Steps>
+  <Step title="Navigate to the create trip page">
+    From the dashboard at `/dashboard`, click the **+ Crear Nuevo Viaje** button (visible only to `Creador` and `Admin` users). This takes you to `/trips/create`.
+  </Step>
+
+  <Step title="Fill in the trip details">
+    Complete all required fields in the form:
+
+    | Field | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | `nom` | string | Yes | The name of the trip |
+    | `descripcio` | string | Yes | A detailed description |
+    | `desti` | string | Yes | The travel destination |
+    | `data_inici` | date | Yes | Start date (YYYY-MM-DD) |
+    | `data_fi` | date | Yes | End date (YYYY-MM-DD) |
+    | `maxim_participants` | integer | Yes | Maximum number of participants (default: 10) |
+    | `estat` | enum | Yes | Planning status (default: `Planificant`) |
+
+    The `estat` field accepts the following values:
+
+    | Value | Meaning |
+    |-------|---------|
+    | `Planificant` | Trip is being planned |
+    | `Actiu` | Trip is active and open for enrollment |
+    | `Complet` | Trip has reached full capacity |
+    | `Cancel·lat` | Trip has been cancelled |
+  </Step>
+
+  <Step title="Publish the trip">
+    Click **Publicar Viaje**. The frontend sends a `POST` request to:
+
+    ```http
+    POST /creadorViatges/creator/trips
+    Authorization: Bearer <your_jwt_token>
+    Content-Type: application/json
+
+    {
+      "nom": "Summer hike in the Pyrenees",
+      "descripcio": "A 5-day trekking adventure through the Pyrenean mountains.",
+      "desti": "Pyrenees",
+      "data_inici": "2026-07-01",
+      "data_fi": "2026-07-05",
+      "maxim_participants": 12,
+      "estat": "Planificant"
+    }
+    ```
+
+    On success, you are redirected to `/dashboard` and the new trip appears in the list.
+  </Step>
+</Steps>
+
+## Editing an existing trip
+
+<Steps>
+  <Step title="Open the trip detail page">
+    Navigate to `/trips/:id` for the trip you want to edit.
+  </Step>
+
+  <Step title="Click Editar Viaje">
+    The **Editar Viaje** button appears in the sidebar if you have permission to edit the trip. Click it to go to `/trips/:id/edit`.
+  </Step>
+
+  <Step title="Update the trip details">
+    The edit form is pre-populated with the existing trip data. Modify any of the fields listed in the [trip fields table](#creating-a-new-trip) above.
+  </Step>
+
+  <Step title="Save your changes">
+    Click **Guardar Cambios**. The frontend sends a `PUT` request to:
+
+    ```http
+    PUT /creadorViatges/creator/trips/{id}
+    Authorization: Bearer <your_jwt_token>
+    Content-Type: application/json
+
+    {
+      "nom": "Updated trip name",
+      "desti": "New destination",
+      ...
+    }
+    ```
+
+    On success, you are redirected back to the trip detail page at `/trips/:id`.
+  </Step>
+</Steps>
+
+## Permissions
+
+Edit access is controlled by role and ownership:
+
+| Role | Can edit |
+|------|----------|
+| `Creador` | Only trips they created (`creador_id` matches their user ID) |
+| `Admin` | Any trip |
+
+If a `Creador` attempts to edit a trip they do not own, the server returns a `404` error: `"Viatge no trobat o no ets el creador"`. If a `Viatger` attempts to access the creator endpoints, the server returns a `403` error: `"Permiso denegado"`.

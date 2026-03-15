@@ -1,0 +1,78 @@
+---
+title: 'Update profile'
+description: 'Update the display name and biography of the currently authenticated user.'
+---
+
+`PUT /users/users/me/{nom}/{bio}`
+
+Updates the `full_name` and `bio` fields of the authenticated user's profile. Both values are passed as path parameters.
+
+<Note>
+  Authentication is required. Updates only the profile of the token's owner.
+</Note>
+
+<Note>
+  The path `/users/users/me/{nom}/{bio}` results from the `/users` prefix in `main.py` combined with the `/users` prefix declared on the router itself.
+</Note>
+
+## Request
+
+<ParamField path="nom" type="string" required>
+  New display name. Maximum 50 characters. URL-encode any special characters.
+</ParamField>
+
+<ParamField path="bio" type="string" required>
+  New biography. Maximum 200 characters. URL-encode any special characters.
+</ParamField>
+
+No request body.
+
+### Example request
+
+```bash
+curl -X PUT "http://localhost:8000/users/users/me/Maria%20Garcia/Apassionada%20dels%20viatges" \
+  -H "Authorization: Bearer <token>"
+```
+
+## Response
+
+Returns the updated user object.
+
+<ResponseField name="id" type="integer" required>
+  Unique identifier of the user.
+</ResponseField>
+
+<ResponseField name="email" type="string" required>
+  The user's email address.
+</ResponseField>
+
+<ResponseField name="full_name" type="string" required>
+  Updated display name.
+</ResponseField>
+
+<ResponseField name="rol" type="string" required>
+  The user's role.
+</ResponseField>
+
+<ResponseField name="bio" type="string" required>
+  Updated biography.
+</ResponseField>
+
+### Example response
+
+```json
+{
+  "id": 42,
+  "email": "maria@example.com",
+  "full_name": "Maria Garcia",
+  "rol": "Viatger",
+  "bio": "Apassionada dels viatges"
+}
+```
+
+## Errors
+
+| Status | Detail | Cause |
+|--------|--------|-------|
+| `401` | `Token no vàlid` | Missing or invalid JWT token. |
+| `404` | `Usuari no trobat` | Token is valid but user no longer exists in the database. |

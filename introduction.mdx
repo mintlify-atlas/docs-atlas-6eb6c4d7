@@ -1,0 +1,74 @@
+---
+title: "Introduction"
+description: "TravelConnect is a social travel platform where users discover, join, and co-manage group trips with built-in chat and role-based access."
+---
+
+## What is TravelConnect?
+
+TravelConnect is a full-stack web application that makes group travel social and organized. Users can browse upcoming trips, enroll as participants, chat with fellow travelers, and — if promoted to Creator — plan and publish their own trips.
+
+<CardGroup cols={2}>
+  <Card title="Browse & Join Trips" icon="map" href="/features/trips">
+    Discover available group trips and enroll with a single click.
+  </Card>
+  <Card title="Trip Chat" icon="message" href="/features/chat">
+    Each trip has its own real-time chat room for participants.
+  </Card>
+  <Card title="Roles & Permissions" icon="shield-check" href="/features/roles">
+    Three-tier role system: Traveler, Creator, and Admin.
+  </Card>
+  <Card title="Creator Promotions" icon="arrow-up" href="/features/promotions">
+    Travelers can request promotion to Creator to publish their own trips.
+  </Card>
+</CardGroup>
+
+## Architecture overview
+
+TravelConnect is split into two independent components:
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| **Backend** | FastAPI (Python) + SQLAlchemy | REST API, auth, business logic, database |
+| **Frontend** | React 19 + Vite + React Bootstrap | Single-page application |
+
+The backend exposes a REST API with JWT authentication. The frontend consumes the API via Axios and manages auth state through React Context.
+
+## User roles
+
+TravelConnect has three user roles with escalating privileges:
+
+<CardGroup cols={3}>
+  <Card title="Viatger (Traveler)" icon="user">
+    Browse trips, enroll / leave, participate in chat, request Creator promotion.
+  </Card>
+  <Card title="Creador (Creator)" icon="pen-to-square">
+    Everything a Traveler can do, plus create and edit their own trips.
+  </Card>
+  <Card title="Admin" icon="crown">
+    Full access: manage all users, approve or reject promotion requests, create and edit any trip.
+  </Card>
+</CardGroup>
+
+## Key concepts
+
+- **Trip (Viatge)** — A group travel event with a destination, date range, participant cap, and status lifecycle (Planning → Active → Complete / Cancelled).
+- **Enrollment** — Any authenticated user can join an available trip up to the participant maximum.
+- **Trip Chat** — Participants send and read messages scoped to a single trip.
+- **Promotion Request** — Travelers submit a message explaining why they want to become a Creator; Admins approve or reject.
+
+## Quick links
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get the backend and frontend running locally in minutes.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Full REST API documentation with request/response schemas.
+  </Card>
+  <Card title="User Guide" icon="book-open" href="/guides/authentication">
+    Step-by-step guides for every user workflow.
+  </Card>
+  <Card title="Admin Guide" icon="gear" href="/admin/overview">
+    Manage users and promotion requests as an administrator.
+  </Card>
+</CardGroup>
