@@ -1,0 +1,118 @@
+{
+  "projectType": "saas",
+  "projectName": "TravelConnect",
+  "projectDescription": "A full-stack travel social platform where users can discover, join, and manage group trips with role-based access, real-time trip chat, and a creator promotion workflow.",
+  "theme": "palm",
+  "primaryColor": "#2563EB",
+  "lightColor": "#DBEAFE",
+  "darkColor": "#1E40AF",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "quickstart"]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/trips",
+              "features/chat",
+              "features/roles",
+              "features/promotions"
+            ]
+          },
+          {
+            "group": "User Guide",
+            "pages": [
+              "guides/authentication",
+              "guides/browsing-trips",
+              "guides/joining-trips",
+              "guides/creating-trips",
+              "guides/managing-profile"
+            ]
+          },
+          {
+            "group": "Admin Guide",
+            "pages": [
+              "admin/overview",
+              "admin/managing-users",
+              "admin/promotion-requests"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["api/overview"]
+          },
+          {
+            "group": "Authentication",
+            "pages": ["api/auth/login", "api/auth/register"]
+          },
+          {
+            "group": "Trips",
+            "pages": [
+              "api/trips/list",
+              "api/trips/get",
+              "api/trips/enroll",
+              "api/trips/leave",
+              "api/trips/create",
+              "api/trips/edit"
+            ]
+          },
+          {
+            "group": "Chat",
+            "pages": ["api/chat/messages", "api/chat/send"]
+          },
+          {
+            "group": "Users",
+            "pages": ["api/users/me", "api/users/update-profile"]
+          },
+          {
+            "group": "Admin",
+            "pages": [
+              "api/admin/users",
+              "api/admin/promote-user",
+              "api/admin/promotions",
+              "api/admin/update-promotion"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Group trip discovery and enrollment",
+    "Role-based access control (Viatger, Creador, Admin)",
+    "Real-time trip chat per journey",
+    "Trip creation and management for Creators and Admins",
+    "Creator promotion request workflow",
+    "JWT-based authentication",
+    "User profile management"
+  ],
+  "publicApiSurface": [
+    "POST /auth/login",
+    "POST /auth/register",
+    "GET /viatge/trips",
+    "GET /viatge/trips/{id}",
+    "POST /viatge/trips/{id}/enroll",
+    "POST /viatge/trips/{id}/leave",
+    "POST /viatge/promote-request",
+    "POST /creadorViatges/trips",
+    "PUT /creadorViatges/trips/{id}",
+    "GET /missatges/trips/{trip_id}/chat",
+    "POST /missatges/trips/{trip_id}/chat/send",
+    "GET /users/me",
+    "PUT /users/me/{nom}/{bio}",
+    "GET /admin/users",
+    "PUT /admin/users/{user_id}/promote",
+    "GET /admin/users/promotions",
+    "PUT /admin/promotions/{user_id}"
+  ]
+}
